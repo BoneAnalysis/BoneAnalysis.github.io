@@ -1,8 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for
 import slope_of_bone_calculator
-
+import converter
+from flask_frozen import Freezer 
+import sys, os
 
 app = Flask(__name__)
+freezer = Freezer(app)
+
 
 @app.route("/")
 def hello_world():
@@ -10,18 +14,27 @@ def hello_world():
 
 @app.route("/Analysis/", methods = ["POST"])
 def Analysis():
-    print("ANALYSIS POOPING?")
-    uploaded_file = request.files['filename']
-    print("CAN YOU SEE THIS?")
+    uploaded_file = request.files['file']
 
     if uploaded_file.filename != "":
-        print("FILE UPLOADED")
-        uploaded_file.save("THIS IS A TEST")
+        text = request.form['text']
+        print("1")
+        converter.converter(uploaded_file.filename, text)
+        print("2")
+        converted = text + ".jpg"
+        print("3")
+        angle = slope_of_bone_calculator.run_code(converted)
+        print("4")
+        return "<p>{x} from file {y} </p>".format(x = angle, y = converted)
 
-    angle = slope_of_bone_calculator.run_code()
-    print(angle)
-    return "<p>{x}</p>".format(x = angle)
+    else:
+        return render_template('index.html')
+    
 
 
 if __name__ == "__main__":
-    app.run()
+    if len(sys.argv) > 1 and sys.argv[1] == "build":
+        print("x")
+        freezer.freeze()
+    else:
+        app.run()
